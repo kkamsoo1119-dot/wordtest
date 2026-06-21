@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>내 마음 번역기 - 클래스카드 스타일</title>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        
+        body {
+            font-family: 'Pretendard', 'Malgun Gothic', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .app-container {
+            background-color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 600px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            min-height: 650px;
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+        }
+
+        .app-header h1 {
+            font-size: 24px;
+            margin: 0 0 15px 0;
+            font-weight: 800;
+        }
+
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px;
+            border-radius: 12px;
+            width: fit-content;
+            margin: 0 auto;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 8px 16px;
+            font-size: 15px;
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #007bff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .content-area {
+            padding: 30px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .section { display: none; }
+        .section.active { display: flex; flex-direction: column; width: 100%; animation: fadeIn 0.4s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 1단계: 플래시카드 */
+        .learn-progress {
+            text-align: center;
+            color: #6c757d;
+            font-weight: 700;
+            margin-bottom: 15px;
+            font-size: 15px;
+        }
+
+        .flashcard-scene {
+            width: 100%;
+            height: 320px;
+            perspective: 1000px;
+            margin-bottom: 30px;
+            cursor: pointer;
+        }
+
+        .flashcard-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+            transform-style: preserve-3d;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            border-radius: 20px;
+        }
+
+        .flashcard-scene.is-flipped .flashcard-inner { transform: rotateY(180deg); }
+
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 20px;
+            padding: 30px;
+            box-sizing: border-box;
+            background: white;
+            border: 2px solid #e9ecef;
+            text-align: center;
+            word-break: keep-all;
+        }
+
+        .flashcard-front { font-size: 42px; font-weight: 800; color: #212529; }
+        .flashcard-back {
+            transform: rotateY(180deg);
+            background: #f8f9fa;
+            font-size: 22px;
+            font-weight: 600;
+            color: #007bff;
+            border-color: #cce5ff;
+            line-height: 1.5;
+            overflow-y: auto;
+        }
+
+        .controls { display: flex; justify-content: space-between; align-items: center; gap: 15px; }
+        .nav-btn {
+            background: #f1f3f5; border: none; width: 60px; height: 60px; border-radius: 50%;
+            font-size: 24px; color: #495057; cursor: pointer; transition: background 0.2s;
+        }
+        .nav-btn:hover:not(:disabled) { background: #e2e6ea; }
+        .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        .btn-autoplay {
+            flex-grow: 1; background: #343a40; color: white; border: none;
+            border-radius: 12px; font-size: 16px; font-weight: bold; height: 60px; cursor: pointer;
+        }
+        .btn-autoplay:hover { background: #212529; }
+
+        /* 2, 3단계 퀴즈 공통 */
+        .question-box {
+            font-size: 18px; font-weight: 700; margin-bottom: 25px; color: #212529;
+            background: #f8f9fa; padding: 25px; border-radius: 16px;
+            word-break: keep-all; line-height: 1.5; text-align: center; border: 1px solid #e9ecef;
+        }
+        
+        .btn-container { display: flex; flex-direction: column; gap: 12px; }
+        
+        .option-btn {
+            background-color: #ffffff; border: 2px solid #dee2e6; padding: 18px 20px;
+            font-size: 16px; border-radius: 14px; cursor: pointer; text-align: left;
+            position: relative; color: #495057; font-weight: 600; overflow: hidden;
+            transition: all 0.3s ease; /* 색상 변경을 부드럽게 만들기 위한 애니메이션 */
+        }
+        .option-btn * { pointer-events: none; } 
+        
+        .option-btn:hover:not(:disabled) { background-color: #f8f9fa; border-color: #adb5bd; }
+        .option-btn:disabled { cursor: not-allowed; }
+
+        /* 채점 효과 Classes (배경색 변경) */
+        .correct { background-color: #e6fffa !important; border-color: #20c997 !important; color: #0ca678 !important; }
+        .wrong { background-color: #fff5f5 !important; border-color: #fa5252 !important; color: #e03131 !important; opacity: 0.7; }
+
+        .action-btn { background: #007bff; color: white; border: none; padding: 16px; font-size: 18px; font-weight: bold; border-radius: 14px; cursor: pointer; margin-top: 20px; width: 100%; }
+        .action-btn:hover { background: #0056b3; }
+        .tip-text { text-align: center; font-size: 13px; color: #adb5bd; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="app-header">
+        <h1>내 마음 번역기 🧠</h1>
+        <div class="tab-container">
+            <button class="tab-btn active" id="tab-1">단어학습</button>
+            <button class="tab-btn" id="tab-2">뜻 맞추기</button>
+            <button class="tab-btn" id="tab-3">실전테스트</button>
+        </div>
+    </div>
+
+    <div class="content-area">
+        <div id="section-1" class="section active">
+            <div class="learn-progress" id="learn-progress">1 / 120</div>
+            <div class="flashcard-scene" id="flashcard-scene">
+                <div class="flashcard-inner" id="flashcard-inner">
+                    <div class="flashcard-front" id="flashcard-front">단어</div>
+                    <div class="flashcard-back" id="flashcard-back">의미</div>
+                </div>
+            </div>
+            <div class="controls">
+                <button class="nav-btn" id="btn-prev">◀</button>
+                <button class="btn-autoplay" id="btn-shuffle">🔀 카드 섞기</button>
+                <button class="nav-btn" id="btn-next">▶</button>
+            </div>
+            <div class="tip-text">카드를 클릭하면 뜻이 나타납니다.</div>
+        </div>
+
+        <div id="section-2" class="section">
+            <div class="learn-progress">의미를 보고 알맞은 단어를 고르세요 (무한 반복)</div>
+            <div class="question-box" id="step2-question">질문</div>
+            <div class="btn-container" id="step2-options"></div>
+        </div>
+
+        <div id="section-3" class="section">
+            <div id="test-running">
+                <div class="learn-progress" id="step3-progress">문제 1 / 120</div>
+                <div class="question-box" id="step3-question">질문</div>
+                <div class="btn-container" id="step3-options"></div>
+            </div>
+            <div id="test-result" style="display: none; text-align: center;">
+                <h2 style="color:#212529; font-size: 28px; margin-bottom: 10px;">테스트 완료! 🎉</h2>
+                <div class="question-box" id="score-text" style="font-size: 24px; color: #007bff; border-color: #cce5ff;">120점 만점에 0점</div>
+                <p style="color: #6c757d; margin-bottom: 30px;">나의 감정 어휘력을 잘 확인했나요?</p>
+                <button class="action-btn" id="btn-restart">다시 도전하기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const fullWordData = [
+        { word: "화", meaning: "몹시 노하거나 언짢아 나는 성." },
+        { word: "분노", meaning: "분개하여 몹시 성을 냄. 또는 그렇게 내는 성." },
+        { word: "억울함", meaning: "아무 잘못 없이 꾸중을 듣거나 벌을 받거나 하여 분하고 답답하다." },
+        { word: "무시", meaning: "사물의 존재 의의나 가치를 알아주지 아니함. 사람을 깔보거나 업신여김." },
+        { word: "서운함", meaning: "마음에 모자라 아쉽거나 섭섭한 느낌이 있다." },
+        { word: "조급함", meaning: "참을성이 없이 몹시 급하다." },
+        { word: "피로함", meaning: "과로로 정신이나 몸이 지치어 고달프다." },
+        { word: "곤란함", meaning: "사정이 참 딱하게 되다. 또는 일이 몹시 어렵게 되다." },
+        { word: "억압", meaning: "뜻대로 자유롭게 행동하지 못하도록 억지로 억누름." },
+        { word: "침해", meaning: "침범하여 해를 끼침." },
+        { word: "불공평함", meaning: "공평하지 아니하다." },
+        { word: "답답함", meaning: "숨이 막힐 듯이 갑갑하다. 마음이 조마조마하거나 불안하여 안타깝다." },
+        { word: "짜증", meaning: "마음에 흡족하지 아니하여 몹시 싫증을 내거나 성을 내는 일." },
+        { word: "신경질", meaning: "신경의 흥분 상태가 지나쳐서 사소한 일에도 곧잘 성을 내거나 몹시 까다롭게 구는 일. 또는 그런 성질." },
+        { word: "피곤함", meaning: "몸이나 마음이 지치어 고달프다." },
+        { word: "과제", meaning: "처리해야 할 문제." },
+        { word: "압박", meaning: "강한 힘으로 내리누름. 기운이나 세력으로 억누름." },
+        { word: "수면", meaning: "잠을 자는 일." },
+        { word: "부족", meaning: "필요한 양이나 기준에 미치지 못하여 모자람." },
+        { word: "무력감", meaning: "스스로 어떠한 일을 감당할 수 있는 힘이 없다고 느끼는 감정." },
+        { word: "귀찮음", meaning: "마음에 들지 아니하고 괴롭거나 성가시다." },
+        { word: "갈등", meaning: "일이나 사정이 서로 복잡하게 뒤얽혀 화합하지 못함의 비유." },
+        { word: "불안정함", meaning: "일정하게 자리를 잡지 못하여 평안하지 아니하다." },
+        { word: "뜻", meaning: "마음에 품은 생각이나 의도." },
+        { word: "예민함", meaning: "자극에 대한 반응이나 감각이 지나치게 날카롭다." },
+        { word: "거슬림", meaning: "순순히 받아들여지지 않고 마음에 언짢은 느낌이 들다." },
+        { word: "무기력", meaning: "어떠한 일을 감당할 수 있는 기운과 힘이 없음." },
+        { word: "지루함", meaning: "시간이 오래 걸리거나 같은 상태가 오래 계속되어 따분하고 싫증이 나다." },
+        { word: "막막함", meaning: "의지할 곳 없이 외롭고 답답하다. 또는 뚜렷하지 못하고 어렴풋하다." },
+        { word: "실패", meaning: "일을 잘못하여 뜻한 대로 되지 아니하거나 그르침." },
+        { word: "두려움", meaning: "꺼려하거나 무서워하는 마음." },
+        { word: "번아웃", meaning: "극도의 신체적, 정신적 피로로 무기력해지는 현상(소진 증후군)을 의미함." },
+        { word: "흥미", meaning: "흥을 느끼는 재미." },
+        { word: "자신감", meaning: "자신이 있다는 느낌." },
+        { word: "저하", meaning: "정도나 수준이 떨어짐." },
+        { word: "지침", meaning: "힘든 일을 하거나 어떤 일에 시달려 기운이 빠지다." },
+        { word: "외로움", meaning: "홀로 되거나 의지할 곳이 없어 쓸쓸하다." },
+        { word: "비교", meaning: "둘 이상의 사물을 견주어 서로 간의 유사점, 차이점 등을 고찰하는 일." },
+        { word: "의식", meaning: "어떤 일이나 현상 따위에 대하여 특별하게 지각하는 작용." },
+        { word: "목표", meaning: "어떤 목적을 이루려고 지향하는 실제적 대상으로 삼음." },
+        { word: "상실", meaning: "어떤 것이 아주 없어지거나 사라짐." },
+        { word: "막연함", meaning: "갈피를 잡을 수 없게 아득하다. 뚜렷하지 못하고 어렴풋하다." },
+        { word: "불안", meaning: "마음이 편하지 아니하고 조마조마함." },
+        { word: "초조", meaning: "애가 타서 마음이 조마조마함." },
+        { word: "욕심", meaning: "분수에 넘치게 무엇을 탐내거나 누리고자 하는 마음." },
+        { word: "실수", meaning: "조심하지 아니하여 잘못함. 또는 그런 행위." },
+        { word: "시선", meaning: "눈이 가는 방향. 주의 또는 관심을 비유적으로 이르는 말." },
+        { word: "성적", meaning: "일 따위의 결과로 얻은 실적. (학업 성취도의 평가 결과)." },
+        { word: "준비", meaning: "미리 마련하여 갖춤." },
+        { word: "고립감", meaning: "다른 사람과 어울리지 못하고 외톨이로 혼자 떨어져 있는 듯한 느낌." },
+        { word: "완벽주의", meaning: "모든 것을 완벽하게 하려는 태도." },
+        { word: "과도", meaning: "정도에 지나침." },
+        { word: "긴장", meaning: "마음을 조이고 정신을 바짝 차림." },
+        { word: "부담감", meaning: "어떠한 의무나 책임을 져야 한다는 느낌." },
+        { word: "슬픔", meaning: "원통한 일을 겪거나 불쌍한 일을 보고 마음이 아프고 괴롭다." },
+        { word: "우울", meaning: "근심스럽거나 답답하여 활기가 없음." },
+        { word: "그리움", meaning: "어떤 대상이 몹시 보고 싶거나 만나고 싶거나 하고 싶다." },
+        { word: "소외감", meaning: "무리에서 따돌림을 당하여 멀어진 듯한 느낌." },
+        { word: "이해", meaning: "남의 사정을 잘 헤아려 너그러이 받아들임." },
+        { word: "후회", meaning: "이전의 잘못을 깨치고 뉘우침." },
+        { word: "자책", meaning: "자신의 결함이나 잘못에 대하여 스스로 깊이 뉘우치고 자신을 책망함." },
+        { word: "허전함", meaning: "주위에 아무것도 없어서 텅 빈 것 같다. 무엇을 잃거나 의지할 곳이 없어진 것 같아 서운한 느낌이 있다." },
+        { word: "위로", meaning: "따뜻한 말이나 행동으로 괴로움을 덜어 주거나 슬픔을 달래 줌." },
+        { word: "속상함", meaning: "화가 나거나 걱정이 되는 따위로 인하여 마음이 불편하고 우울하다." },
+        { word: "상처", meaning: "몸을 다쳐서 부상을 입은 자리. 또는 피해를 입은 자국이나 자취." },
+        { word: "서글픔", meaning: "쓸쓸하고 외로운 느낌이 있어 슬프다." },
+        { word: "기쁨", meaning: "욕구가 충족되어 마음이 흐뭇하고 흡족하다." },
+        { word: "활력", meaning: "살아 움직이는 힘." },
+        { word: "인정", meaning: "확실히 그렇다고 여김." },
+        { word: "성취감", meaning: "목적한 바를 이루었다는 느낌." },
+        { word: "소속감", meaning: "어떤 일정한 단체나 무리에 속하여 있다는 느낌." },
+        { word: "자유로움", meaning: "남에게 얽매이거나 구속받지 아니하고 자기 마음대로 할 수 있는 상태에 있다." },
+        { word: "기대감", meaning: "어떤 일이 이루어지기를 바라고 기다리는 감정." },
+        { word: "든든함", meaning: "마음이 놓이게 바탕이나 힘이 굳세다." },
+        { word: "보람", meaning: "어떤 일을 한 뒤에 얻어지는 좋은 결과나 만족한 느낌. 자랑스러움이나 자부심을 갖게 해 주는 일의 가치." },
+        { word: "자랑스러움", meaning: "남에게 드러내어 뽐낼 만한 데가 있다." },
+        { word: "안도감", meaning: "근심이나 걱정이 없어지고 마음이 놓이는 느낌." },
+        { word: "설렘", meaning: "마음이 가라앉지 아니하고 들떠서 두근거리다." },
+        { word: "평온", meaning: "조용하고 평안함." },
+        { word: "만족", meaning: "마음에 흡족함." },
+        { word: "안심", meaning: "모든 걱정을 떨쳐 버리고 마음을 편히 가짐." },
+        { word: "편안함", meaning: "편하고 걱정 없이 좋음." },
+        { word: "여유", meaning: "물질적ㆍ공간적ㆍ시간적으로 넉넉하여 남음이 있는 상태. 느긋하고 차분하게 생각하거나 행동하는 마음의 상태." },
+        { word: "감사", meaning: "고맙게 여김. 또는 그런 마음." },
+        { word: "보호", meaning: "위험이나 곤란 따위가 미치지 아니하도록 잘 보살펴 돌봄." },
+        { word: "충족감", meaning: "넉넉하여 모자람이 없는 느낌." },
+        { word: "충분함", meaning: "모자람이 없이 넉넉하다." },
+        { word: "스트레스", meaning: "적응하기 어려운 환경에 처할 때 느끼는 심리적ㆍ신체적 긴장 상태." },
+        { word: "수용", meaning: "어떠한 것을 받아들임." },
+        { word: "조화로움", meaning: "서로 잘 어울리는 데가 있다." },
+        { word: "기대", meaning: "어떤 일이 이루어지기를 바라고 기다림." },
+        { word: "호기심", meaning: "새롭고 신기한 것을 좋아하거나 모르는 것을 알고 싶어 하는 마음." },
+        { word: "희망", meaning: "앞일에 대하여 어떤 기대를 가지고 바람." },
+        { word: "변화", meaning: "사물의 성질, 모양, 상태 따위가 바뀌어 달라짐." },
+        { word: "의욕", meaning: "무엇을 하고자 하는 적극적인 마음이나 욕망." },
+        { word: "동기 부여", meaning: "어떤 일이나 행동을 일으키게 하는 계기를 줌." },
+        { word: "상상", meaning: "실제로 경험하지 않은 현상이나 사물에 대하여 마음속으로 그려 봄." },
+        { word: "성장", meaning: "사람이나 동식물 따위가 자라서 점점 커짐. 사물의 규모나 세력 따위가 커짐." },
+        { word: "열망", meaning: "열렬하게 바람." },
+        { word: "주도성", meaning: "주동이 되어 이끄는 성질." },
+        { word: "활기", meaning: "활발한 기운." },
+        { word: "고마움", meaning: "남이 베풀어 준 신세나 혜택을 참으로 달갑고 장하게 여기는 마음이 있다." },
+        { word: "신뢰", meaning: "굳게 믿고 의지함." },
+        { word: "지지", meaning: "어떤 사람이나 단체 따위의 뜻에 찬동하여 이를 위하여 힘을 씀." },
+        { word: "연결", meaning: "사물과 사물, 현상과 현상이 서로 이어져 맺어짐." },
+        { word: "존중", meaning: "높이어 귀중하게 대함." },
+        { word: "유대감", meaning: "서로 밀접하게 연결되어 있는 공통된 느낌." },
+        { word: "따뜻함", meaning: "감정, 태도, 분위기 따위가 정답고 포근하다." },
+        { word: "보살핌", meaning: "정성을 기울여 보호하며 돕다." },
+        { word: "친밀함", meaning: "지내는 사이가 매우 친하고 가깝다." },
+        { word: "다행스러움", meaning: "뜻밖에 일이 잘되어 운이 좋은 데가 있다." },
+        { word: "당당함", meaning: "모습이나 태도가 의젓하고 떳떳하다." },
+        { word: "자신감", meaning: "자신이 있다는 느낌." },
+        { word: "뿌듯함", meaning: "기쁨이나 감격 따위가 마음에 가득 차서 벅차다." },
+        { word: "주도", meaning: "주동이 되어 이끎." },
+        { word: "독립심", meaning: "남에게 의지하지 아니하고 자기 혼자 힘으로 어려움을 헤쳐 나가거나 맡은 일을 하여 내려는 마음." },
+        { word: "확신", meaning: "굳게 믿음. 또는 그런 믿음." },
+        { word: "역량", meaning: "어떤 일을 해낼 수 있는 힘." },
+        { word: "발휘", meaning: "재능이나 실력 따위를 잘 떨쳐 나타냄." },
+        { word: "칭찬", meaning: "좋은 점이나 착하고 훌륭한 일을 높이 평가함. 또는 그런 말." },
+        { word: "단단함", meaning: "뜻이나 결심 따위가 흔들림 없이 굳고 위엄이 있다. 연약하지 않고 튼튼하다." },
+        { word: "체감", meaning: "몸으로 어떤 자극을 느낌." }
+    ];
+
+    // 상태 변수
+    let learnCards = [...fullWordData];
+    let currentCardIndex = 0;
+    let testIndex = 0;
+    let testScore = 0;
+    let testQuestions = [];
+    
+    // 테스트 문항 수를 120개 전체로 변경
+    const TOTAL_TEST_Q = fullWordData.length; 
+
+    // 즉시 실행 함수 (로딩 지연 방지)
+    function initApp() {
+        // 탭 메뉴 설정
+        document.getElementById('tab-1').onclick = function() { switchTab(1); };
+        document.getElementById('tab-2').onclick = function() { switchTab(2); };
+        document.getElementById('tab-3').onclick = function() { switchTab(3); };
+
+        // 1단계 컨트롤러 설정
+        document.getElementById('flashcard-scene').onclick = flipCard;
+        document.getElementById('btn-prev').onclick = prevCard;
+        document.getElementById('btn-next').onclick = nextCard;
+        document.getElementById('btn-shuffle').onclick = shuffleCards;
+
+        // 3단계 컨트롤러 설정
+        document.getElementById('btn-restart').onclick = startTest;
+
+        // 프로그램 시작
+        renderStep1();
+    }
+
+    // 화면 전환
+    function switchTab(step) {
+        document.getElementById('tab-1').classList.toggle('active', step === 1);
+        document.getElementById('tab-2').classList.toggle('active', step === 2);
+        document.getElementById('tab-3').classList.toggle('active', step === 3);
+
+        document.getElementById('section-1').classList.toggle('active', step === 1);
+        document.getElementById('section-2').classList.toggle('active', step === 2);
+        document.getElementById('section-3').classList.toggle('active', step === 3);
+
+        if (step === 1) renderStep1();
+        if (step === 2) loadStep2();
+        if (step === 3) startTest();
+    }
+
+    // 무한루프 없는 안전한 선택지 섞기
+    function generateOptions(correctItem) {
+        let options = [correctItem];
+        let maxTries = 1000;
+        
+        while (options.length < 5 && maxTries > 0) {
+            let randomItem = fullWordData[Math.floor(Math.random() * fullWordData.length)];
+            let isDuplicate = options.some(opt => opt.word === randomItem.word || opt.meaning === randomItem.meaning);
+            if (!isDuplicate) options.push(randomItem);
+            maxTries--;
+        }
+        return options.sort(() => Math.random() - 0.5);
+    }
+
+    // 1단계 로직
+    function renderStep1() { updateCardUI(); }
+    function updateCardUI() {
+        document.getElementById('learn-progress').innerText = `${currentCardIndex + 1} / ${learnCards.length}`;
+        document.getElementById('flashcard-front').innerText = learnCards[currentCardIndex].word;
+        document.getElementById('flashcard-back').innerText = learnCards[currentCardIndex].meaning;
+        document.getElementById('flashcard-scene').classList.remove('is-flipped');
+        document.getElementById('btn-prev').disabled = currentCardIndex === 0;
+        document.getElementById('btn-next').disabled = currentCardIndex === learnCards.length - 1;
+    }
+    function flipCard() { document.getElementById('flashcard-scene').classList.toggle('is-flipped'); }
+    function prevCard() { if (currentCardIndex > 0) { currentCardIndex--; updateCardUI(); } }
+    function nextCard() { if (currentCardIndex < learnCards.length - 1) { currentCardIndex++; updateCardUI(); } }
+    function shuffleCards() { learnCards.sort(() => Math.random() - 0.5); currentCardIndex = 0; updateCardUI(); alert('카드가 무작위로 섞였습니다!'); }
+
+    // 2단계 로직
+    function loadStep2() {
+        const questionEl = document.getElementById('step2-question');
+        const optionsEl = document.getElementById('step2-options');
+        optionsEl.innerHTML = ''; 
+
+        const currentData = fullWordData[Math.floor(Math.random() * fullWordData.length)];
+        questionEl.innerText = `"${currentData.meaning}"`;
+
+        const options = generateOptions(currentData);
+
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.setAttribute('data-value', opt.word);
+            
+            // 선 그리기(SVG) 요소 없이 깔끔하게 텍스트만 유지
+            btn.innerHTML = `<span>${opt.word}</span>`;
+
+            btn.onclick = function() {
+                handleAnswer(this, opt.word, currentData.word, optionsEl, loadStep2);
+            };
+
+            optionsEl.appendChild(btn);
+        });
+    }
+
+    // 3단계 로직
+    function startTest() {
+        document.getElementById('test-running').style.display = 'block';
+        document.getElementById('test-result').style.display = 'none';
+        testIndex = 0;
+        testScore = 0;
+        
+        // 120개 전체 문제를 랜덤하게 섞어서 출제
+        testQuestions = [...fullWordData].sort(() => Math.random() - 0.5).slice(0, TOTAL_TEST_Q);
+        loadStep3();
+    }
+
+    function loadStep3() {
+        const progressEl = document.getElementById('step3-progress');
+        const questionEl = document.getElementById('step3-question');
+        const optionsEl = document.getElementById('step3-options');
+        
+        progressEl.innerText = `문제 ${testIndex + 1} / ${TOTAL_TEST_Q}`;
+        optionsEl.innerHTML = '';
+
+        const currentData = testQuestions[testIndex];
+        questionEl.innerHTML = `<span style="color:#007bff;">'${currentData.word}'</span>의<br>올바른 의미는?`;
+
+        const options = generateOptions(currentData);
+
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.setAttribute('data-value', opt.meaning);
+
+            // 선 그리기(SVG) 요소 없이 깔끔하게 텍스트만 유지
+            btn.innerHTML = `<span>${opt.meaning}</span>`;
+
+            btn.onclick = function() {
+                if (opt.meaning === currentData.meaning) testScore++;
+                handleAnswer(this, opt.meaning, currentData.meaning, optionsEl, function() {
+                    testIndex++;
+                    if (testIndex < TOTAL_TEST_Q) loadStep3();
+                    else showTestResult();
+                });
+            };
+
+            optionsEl.appendChild(btn);
+        });
+    }
+
+    function showTestResult() {
+        document.getElementById('test-running').style.display = 'none';
+        document.getElementById('test-result').style.display = 'block';
+        document.getElementById('score-text').innerText = `${TOTAL_TEST_Q}점 만점에 ${testScore}점`;
+    }
+
+    // 색상 변경 채점 엔진 (동그라미 채점선 제거 및 배경색 변경)
+    function handleAnswer(clickedBtn, selectedValue, correctValue, containerEl, nextCallback) {
+        const allBtns = containerEl.querySelectorAll('.option-btn');
+        allBtns.forEach(b => b.disabled = true); // 클릭 방지
+
+        if (selectedValue === correctValue) {
+            // 정답을 맞춘 경우: 클릭한 보기 전체의 배경색을 산뜻한 녹색으로 바꿈
+            clickedBtn.classList.add('correct'); 
+        } else {
+            // 오답을 고른 경우: 클릭한 것은 빨간색(wrong), 정답은 녹색(correct)으로 표시
+            clickedBtn.classList.add('wrong');
+            allBtns.forEach(b => {
+                if (b.getAttribute('data-value') === correctValue) {
+                    b.classList.add('correct');
+                }
+            });
+        }
+        
+        // 1.2초 대기 후 다음으로 넘어가기
+        setTimeout(function() {
+            nextCallback();
+        }, 1200);
+    }
+
+    // 앱 실행
+    initApp();
+
+</script>
+
+</body>
+</html>
