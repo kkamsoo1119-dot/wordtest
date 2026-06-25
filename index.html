@@ -171,20 +171,65 @@
             background-color: #ffffff; border: 2px solid #dee2e6; padding: 18px 20px;
             font-size: 16px; border-radius: 14px; cursor: pointer; text-align: left;
             position: relative; color: #495057; font-weight: 600; overflow: hidden;
-            transition: all 0.3s ease; /* 색상 변경을 부드럽게 만들기 위한 애니메이션 */
+            transition: all 0.3s ease;
         }
         .option-btn * { pointer-events: none; } 
         
         .option-btn:hover:not(:disabled) { background-color: #f8f9fa; border-color: #adb5bd; }
         .option-btn:disabled { cursor: not-allowed; }
 
-        /* 채점 효과 Classes (배경색 변경) */
         .correct { background-color: #e6fffa !important; border-color: #20c997 !important; color: #0ca678 !important; }
         .wrong { background-color: #fff5f5 !important; border-color: #fa5252 !important; color: #e03131 !important; opacity: 0.7; }
 
         .action-btn { background: #007bff; color: white; border: none; padding: 16px; font-size: 18px; font-weight: bold; border-radius: 14px; cursor: pointer; margin-top: 20px; width: 100%; }
         .action-btn:hover { background: #0056b3; }
         .tip-text { text-align: center; font-size: 13px; color: #adb5bd; margin-top: 15px; }
+
+        /* 하단 고정 및 결과창 홈 버튼 스타일 (기존 플로팅 버튼 대체) */
+        .app-footer {
+            padding: 15px 30px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+        .btn-home-footer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: #ffffff;
+            color: #495057;
+            border: 2px solid #dee2e6;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .btn-home-footer:hover {
+            background: #e9ecef;
+            color: #212529;
+            border-color: #ced4da;
+        }
+        .action-btn-home {
+            display: block;
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 16px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 14px;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+            text-decoration: none;
+            box-sizing: border-box;
+        }
+        .action-btn-home:hover { background: #5a6268; }
     </style>
 </head>
 <body>
@@ -233,8 +278,19 @@
                 <div class="question-box" id="score-text" style="font-size: 24px; color: #007bff; border-color: #cce5ff;">120점 만점에 0점</div>
                 <p style="color: #6c757d; margin-bottom: 30px;">나의 감정 어휘력을 잘 확인했나요?</p>
                 <button class="action-btn" id="btn-restart">다시 도전하기</button>
+                <a href="https://kkamsoo1119-dot.github.io/M.A.P.S./" class="action-btn-home">M.A.P.S. 첫 화면으로</a>
             </div>
         </div>
+    </div>
+
+    <!-- 앱 컨테이너 하단 고정 푸터 (모든 탭/화면에서 상시 노출) -->
+    <div class="app-footer">
+        <a href="https://kkamsoo1119-dot.github.io/M.A.P.S./" class="btn-home-footer">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+            </svg>
+            M.A.P.S. 첫 화면으로 이동
+        </a>
     </div>
 </div>
 
@@ -281,7 +337,7 @@
         { word: "의식", meaning: "어떤 일이나 현상 따위에 대하여 특별하게 지각하는 작용." },
         { word: "목표", meaning: "어떤 목적을 이루려고 지향하는 실제적 대상으로 삼음." },
         { word: "상실", meaning: "어떤 것이 아주 없어지거나 사라짐." },
-        { word: "막연함", meaning: "갈피를 잡을 수 없게 아득하다. 뚜렷하지 못하고 어렴풋하다." },
+        { word: "막연함", 단어: "막연함", meaning: "갈피를 잡을 수 없게 아득하다. 뚜렷하지 못하고 어렴풋하다." },
         { word: "불안", meaning: "마음이 편하지 아니하고 조마조마함." },
         { word: "초조", meaning: "애가 타서 마음이 조마조마함." },
         { word: "욕심", meaning: "분수에 넘치게 무엇을 탐내거나 누리고자 하는 마음." },
